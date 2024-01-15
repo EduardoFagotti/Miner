@@ -1,9 +1,16 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Alert } from "react-native";
 import params from "./src/params";
 
 import MineField from "./src/components/MineField";
-import { createMinedBoard } from "./src/functions";
+import {
+  createMinedBoard,
+  openField,
+  hadExplosion,
+  wonGame,
+  showMines,
+  cloneBoard,
+} from "./src/functions";
 import React from "react";
 
 class App extends React.Component {
@@ -24,6 +31,33 @@ class App extends React.Component {
     return Math.ceil(cols * rows * params.difficultlevel);
   };
 
+  createState = () => {
+    const cols = params.getColumnsAmount();
+    const rows = params.getRowsAmount();
+    return {
+      board: createMinedBoard(rows, cols, this.minesAmount()),
+      won: false,
+      lost: false,
+    };
+  };
+
+  onOpenField = (row, column) => {
+    const board = cloneBoard(this.state.board);
+    openField(board, row, column);
+    const lost = hadExplosion(board);
+    const won = wonGame(board);
+
+    if (lost) {
+      showMines(board);
+      Alert.alert("perdeeeu!");
+    }
+    if (won) {
+      Alert.alert("parabens, não esperava menos de voce");
+    }
+
+    this.setState({ board, lost, won });
+  };
+
   render() {
     return (
       <View style={styles.container}>
@@ -32,7 +66,7 @@ class App extends React.Component {
           Tamanho da grade: {params.getRowsAmount()}x{params.getColumnsAmount()}
         </Text>
         <View style={styles.board}>
-          <MineField board={this.state.board} />
+          <MineField board={this.state.board} onOpenField={this.onOpenField} />
         </View>
       </View>
     );
